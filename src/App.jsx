@@ -1061,7 +1061,7 @@ function AIChatWidget() {
             <div>
               <div style={{ fontWeight: 800, fontSize: 15 }}>AI 钢琴助教</div>
               <div style={{ fontSize: 11, opacity: 0.85 }}>
-                {GROQ_MODEL} · {loading ? "思考中…" : "在线"}
+                llama-3.3-70b · {loading ? "思考中…" : "在线"}
               </div>
             </div>
           </div>
