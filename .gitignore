@@ -27,6 +27,7 @@ Thumbs.db
 
 # Agent secrets — never commit real API keys
 agent/config.py
+server/.env
 
 # Logs
 *.log

@@ -6,7 +6,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: true,   // auto-open browser on `npm run dev`
+    open: true,
+    proxy: {
+      // 开发时把 /api/* 转发到后端代理服务器
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: "dist",

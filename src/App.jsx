@@ -919,17 +919,8 @@ function Footer({ setPage }) {
 
 // ─── AI Chat ──────────────────────────────────────────────────────────────────
 
-// API Key 从 localStorage 读取，首次使用时会弹窗提示填入
-const GROQ_API_KEY = (() => {
-  let k = localStorage.getItem("groq_api_key") || "";
-  if (!k) {
-    k = prompt("请输入你的 Groq API Key（只需输入一次，保存在本地）：") || "";
-    if (k) localStorage.setItem("groq_api_key", k);
-  }
-  return k;
-})();
-const GROQ_MODEL   = "llama-3.3-70b-versatile";
-const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
+// 通过本地代理调用，Key 存在服务器端 server/.env，不暴露给浏览器
+const CHAT_PROXY_URL = "/api/chat";   // Vite 开发时代理到 localhost:3001
 
 const CHAT_SYSTEM = `你是零基础钢琴/电子琴 AI 助教，只面向完全不会弹琴的新手。
 规则：
@@ -940,30 +931,21 @@ const CHAT_SYSTEM = `你是零基础钢琴/电子琴 AI 助教，只面向完全
 
 async function callGroq(messages) {
   const tag = "[AI Chat]";
-  console.log(`${tag} 开始请求`, { model: GROQ_MODEL, url: GROQ_URL, messages });
+  console.log(`${tag} 请求代理`, CHAT_PROXY_URL, `msgs=${messages.length}`);
 
-  const body = {
-    model: GROQ_MODEL,
-    messages,
-    temperature: 0.7,
-    max_tokens: 800,
-  };
-  console.log(`${tag} 请求体`, JSON.stringify(body, null, 2));
+  const body = { messages, temperature: 0.7, max_tokens: 800 };
 
   let res;
   try {
-    res = await fetch(GROQ_URL, {
+    res = await fetch(CHAT_PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     console.log(`${tag} HTTP 状态`, res.status, res.statusText);
   } catch (networkErr) {
-    console.error(`${tag} 网络错误（CORS / 无网络）`, networkErr);
-    throw new Error(`网络请求失败：${networkErr.message}`);
+    console.error(`${tag} 网络错误（后端是否已启动？）`, networkErr);
+    throw new Error(`无法连接代理服务器，请先运行 node server/index.js`);
   }
 
   let data;
