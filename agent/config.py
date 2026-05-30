@@ -6,7 +6,7 @@
 
 # ─── Groq（免费，速度快）─────────────────────────────────────────────────────
 # 去 https://console.groq.com 注册 → API Keys → 复制填到这里
-QWEN_API_KEY  = "your-groq-api-key-here"   # ← 填你的 key
+QWEN_API_KEY  = "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"   # ← 填你的 key
 QWEN_BASE_URL = "https://api.groq.com/openai/v1/"
 
 # ⚠️ qwen-qwq-32b 是推理模型，会先输出大量思考过程，速度极慢
