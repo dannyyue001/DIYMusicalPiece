@@ -11,7 +11,17 @@ agent.py — Danny音乐馆 AI Agent 主程序
 """
 
 import json
+import re
 import sys
+
+# Windows 终端强制 UTF-8，避免中文/emoji 编码错误
+# reconfigure() 比替换 stdout 安全，不会破坏 Ctrl+C
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except AttributeError:
+        pass  # Python < 3.7 不支持，跳过
 from openai import OpenAI
 from config import QWEN_API_KEY, QWEN_BASE_URL, QWEN_MODEL
 from tools import (
@@ -19,6 +29,7 @@ from tools import (
     answer_music_theory,
     generate_content,
     generate_song_info,
+    classify_intent,
 )
 
 # ─── ANSI 颜色（终端输出美化）────────────────────────────────────────────────
@@ -54,7 +65,7 @@ def run_agent_turn(messages: list[dict]) -> str:
     """
     一次 agent 推理：可能调用工具，最终返回文本回复。
     """
-    client = OpenAI(api_key=QWEN_API_KEY, base_url=QWEN_BASE_URL)
+    client = OpenAI(api_key=QWEN_API_KEY, base_url=QWEN_BASE_URL, timeout=30.0)
 
     # 第一次推理
     resp = client.chat.completions.create(
@@ -239,13 +250,17 @@ def mode_qa():
 
 
 def mode_chat():
-    """自由对话 Agent 模式（自动判断意图，调用工具）"""
+    """
+    自由对话 Agent 模式。
+    用 classify_intent 代替 tool calling，兼容 HF 免费层。
+    """
     print(h("\n🤖 智能对话模式"))
     print(dim("直接说你想做什么，Agent 自动判断并调用对应工具"))
     print(dim("示例：'帮我给《起风了》写文案' / '新增曲目《夜曲》' / '左手和弦怎么练'"))
     print(dim("输入 'q' 退出\n"))
 
-    messages = [{"role": "system", "content": AGENT_SYSTEM}]
+    qa_history = []
+
     while True:
         user_input = input(c("你：", BOLD + PURPLE)).strip()
         if user_input.lower() in ("q", "quit", "exit", "退出"):
@@ -253,15 +268,40 @@ def mode_chat():
         if not user_input:
             continue
 
-        messages.append({"role": "user", "content": user_input})
-        print(dim("  处理中..."))
+        print(dim("  判断意图..."))
         try:
-            reply = run_agent_turn(messages)
-            print(c("\nAgent：", BOLD + GREEN) + reply + "\n")
-            messages.append({"role": "assistant", "content": reply})
+            intent = classify_intent(user_input)
+        except Exception as e:
+            print(f"{RED}意图识别失败：{e}{RESET}")
+            continue
+
+        try:
+            if intent == "CONTENT":
+                # 从用户输入里提取曲名（简单方式：找书名号）
+                m = re.search(r"[《〈「](.+?)[》〉」]", user_input)
+                song = m.group(1) if m else input(label("  请输入曲目名称：")).strip()
+                diff = "简单"
+                cat  = "流行歌曲"
+                print(dim(f"  生成《{song}》文案中..."))
+                result = generate_content(song, diff, cat)
+                print_content_result(result)
+
+            elif intent == "SONG_INFO":
+                m = re.search(r"[《〈「](.+?)[》〉」]", user_input)
+                song = m.group(1) if m else input(label("  请输入曲目名称：")).strip()
+                print(dim(f"  生成《{song}》曲目信息中..."))
+                result = generate_song_info(song)
+                print_song_info_result(result, song)
+
+            else:  # QA
+                print(dim("  思考中..."))
+                answer = answer_music_theory(user_input, qa_history)
+                print(c("\nAgent：", BOLD + GREEN) + answer + "\n")
+                qa_history.append({"role": "user",      "content": user_input})
+                qa_history.append({"role": "assistant", "content": answer})
+
         except Exception as e:
             print(f"{RED}错误：{e}{RESET}")
-            messages.pop()  # 出错时移除失败的用户消息，保持历史干净
 
 
 # ─── 主菜单 ───────────────────────────────────────────────────────────────────
@@ -282,9 +322,10 @@ MENU = f"""
 def main():
     # 简单检查 API key 是否已填写
     from config import QWEN_API_KEY
-    if QWEN_API_KEY.startswith("sk-xxx"):
-        print(f"{RED}⚠️  请先在 agent/config.py 里填写你的 Qwen API Key！{RESET}")
-        print(dim("   前往 https://bailian.console.aliyun.com/ 获取 Key"))
+    if "xxx" in QWEN_API_KEY:
+        print(f"{RED}⚠️  请先在 agent/config.py 里填写你的 API Key！{RESET}")
+        print(dim("   HF 免费 Token：https://huggingface.co/settings/tokens"))
+        print(dim("   阿里云 Qwen：  https://bailian.console.aliyun.com/"))
         sys.exit(1)
 
     while True:

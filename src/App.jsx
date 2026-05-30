@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // ─── Palette & tokens ────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ const CATEGORIES = [
   { id: "classical", label: "经典纯音乐", icon: "🎻" },
   { id: "children",  label: "儿歌启蒙", icon: "🌟" },
   { id: "keyboard",  label: "电子琴专属", icon: "🎹" },
-  { id: "keyboard",  label: "游戏插曲", icon: "🎹" },
+  { id: "game",  label: "游戏插曲", icon: "🎮" },
 ];
 
 const DIFFICULTY_STARS = { 入门: 1, 简单: 2, 中等: 3 };
@@ -129,7 +129,7 @@ const SONGS = [
     tags: ["国风", "流行", "热门"],
   },
   {
-    id: 15, title: "英雄之证", category: "classical", difficulty: "中等", isNew: true,
+    id: 15, title: "英雄之证", category: "game", difficulty: "中等", isNew: true,
     description: "怪物猎人主题曲。",
     keys: "2 6(low) 2 3 — 3 2 6(low) 6 —  5 4 3 — 1 — 2 3 4 — 3 2 3 — 1 — 6(low) ",
     tips: "建议先分段练，再合并完整演奏。",
@@ -917,6 +917,241 @@ function Footer({ setPage }) {
   );
 }
 
+// ─── AI Chat ──────────────────────────────────────────────────────────────────
+
+// ⚠️ 测试用：API Key 直接写在前端，上线前务必换成后端代理
+const GROQ_API_KEY = "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";
+const GROQ_MODEL   = "llama-3.3-70b-versatile";
+const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
+
+const CHAT_SYSTEM = `你是零基础钢琴/电子琴 AI 助教，只面向完全不会弹琴的新手。
+规则：
+1. 语言通俗，必须用术语时立刻附大白话解释
+2. 只讲简化版本，全程使用数字简谱 1234567
+3. 回答分点说明，每段控制 200 字以内
+4. 用户问某首歌时，给出简化练习建议和顺序`;
+
+async function callGroq(messages) {
+  const tag = "[AI Chat]";
+  console.log(`${tag} 开始请求`, { model: GROQ_MODEL, url: GROQ_URL, messages });
+
+  const body = {
+    model: GROQ_MODEL,
+    messages,
+    temperature: 0.7,
+    max_tokens: 800,
+  };
+  console.log(`${tag} 请求体`, JSON.stringify(body, null, 2));
+
+  let res;
+  try {
+    res = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+    console.log(`${tag} HTTP 状态`, res.status, res.statusText);
+  } catch (networkErr) {
+    console.error(`${tag} 网络错误（CORS / 无网络）`, networkErr);
+    throw new Error(`网络请求失败：${networkErr.message}`);
+  }
+
+  let data;
+  try {
+    data = await res.json();
+    console.log(`${tag} 响应数据`, data);
+  } catch (parseErr) {
+    console.error(`${tag} JSON 解析失败`, parseErr);
+    throw new Error("响应解析失败");
+  }
+
+  if (!res.ok) {
+    const errMsg = data?.error?.message || res.statusText;
+    console.error(`${tag} API 错误`, data);
+    throw new Error(`API 错误 ${res.status}：${errMsg}`);
+  }
+
+  const reply = data.choices?.[0]?.message?.content;
+  if (!reply) {
+    console.error(`${tag} 响应结构异常，缺少 choices[0].message.content`, data);
+    throw new Error("响应结构异常");
+  }
+
+  console.log(`${tag} 成功，回复长度`, reply.length);
+  return reply;
+}
+
+function AIChatWidget() {
+  const [open,    setOpen]    = useState(false);
+  const [input,   setInput]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([
+    { role: "assistant", content: "你好！我是你的钢琴助教 🎹 有任何练琴问题都可以问我～" }
+  ]);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [history, loading]);
+
+  async function send() {
+    const q = input.trim();
+    if (!q || loading) return;
+    console.log("[AI Chat] 用户发送：", q);
+
+    const newHistory = [...history, { role: "user", content: q }];
+    setHistory(newHistory);
+    setInput("");
+    setLoading(true);
+
+    const apiMessages = [
+      { role: "system", content: CHAT_SYSTEM },
+      ...newHistory.filter(m => m.role !== "system"),
+    ];
+
+    try {
+      const reply = await callGroq(apiMessages);
+      setHistory(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch (e) {
+      console.error("[AI Chat] 最终错误", e);
+      setHistory(prev => [...prev, {
+        role: "assistant",
+        content: `❌ 出错了：${e.message}\n\n请打开浏览器 F12 → Console 查看详细报错。`,
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  }
+
+  return (
+    <>
+      {/* 悬浮按钮 */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="AI 助教"
+        style={{
+          position: "fixed", bottom: 88, right: 32, zIndex: 500,
+          width: 52, height: 52, borderRadius: "50%",
+          background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
+          color: "#fff", border: "none", cursor: "pointer",
+          fontSize: 22, boxShadow: "0 4px 18px rgba(99,102,241,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "transform 0.2s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"}
+        onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+      >
+        {open ? "✕" : "🤖"}
+      </button>
+
+      {/* 聊天面板 */}
+      {open && (
+        <div style={{
+          position: "fixed", bottom: 152, right: 32, zIndex: 500,
+          width: 360, height: 480,
+          background: "#fff", borderRadius: 20,
+          boxShadow: "0 12px 48px rgba(0,0,0,0.18)",
+          display: "flex", flexDirection: "column",
+          animation: "fadeIn 0.2s ease",
+          overflow: "hidden",
+        }}>
+          {/* Header */}
+          <div style={{
+            background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
+            padding: "14px 18px", color: "#fff",
+            display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 22 }}>🤖</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>AI 钢琴助教</div>
+              <div style={{ fontSize: 11, opacity: 0.85 }}>
+                {GROQ_MODEL} · {loading ? "思考中…" : "在线"}
+              </div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {history.map((m, i) => (
+              <div key={i} style={{
+                display: "flex",
+                justifyContent: m.role === "user" ? "flex-end" : "flex-start",
+              }}>
+                <div style={{
+                  maxWidth: "82%",
+                  background: m.role === "user" ? COLOR.primary : "#f3f4f6",
+                  color: m.role === "user" ? "#fff" : COLOR.text,
+                  borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                  padding: "10px 14px", fontSize: 14, lineHeight: 1.65,
+                  whiteSpace: "pre-wrap", wordBreak: "break-word",
+                }}>
+                  {m.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div style={{ display: "flex", gap: 5, padding: "8px 4px" }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: COLOR.muted,
+                    animation: `floatNote 1s ease-in-out ${i * 0.2}s infinite`,
+                  }} />
+                ))}
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <div style={{
+            borderTop: `1px solid ${COLOR.border}`,
+            padding: "10px 12px", display: "flex", gap: 8, flexShrink: 0,
+          }}>
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="问任何钢琴问题… (Enter 发送)"
+              rows={1}
+              style={{
+                flex: 1, border: `1.5px solid ${COLOR.border}`, borderRadius: 10,
+                padding: "8px 12px", fontSize: 13, resize: "none", outline: "none",
+                fontFamily: "inherit", lineHeight: 1.5,
+                transition: "border-color 0.15s",
+              }}
+              onFocus={e => e.target.style.borderColor = COLOR.primary}
+              onBlur={e => e.target.style.borderColor = COLOR.border}
+              disabled={loading}
+            />
+            <button
+              onClick={send}
+              disabled={loading || !input.trim()}
+              style={{
+                background: input.trim() && !loading ? COLOR.primary : "#e5e7eb",
+                color: input.trim() && !loading ? "#fff" : "#9ca3af",
+                border: "none", borderRadius: 10, padding: "0 16px",
+                cursor: input.trim() && !loading ? "pointer" : "default",
+                fontWeight: 700, fontSize: 14, flexShrink: 0,
+                transition: "all 0.15s",
+              }}
+            >
+              发送
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── Global styles (keyframes) ────────────────────────────────────────────────
 
 const GLOBAL_CSS = `
@@ -963,6 +1198,7 @@ export default function App() {
 
       <SongModal song={selectedSong} onClose={() => setSong(null)} />
       <ScrollToTop />
+      <AIChatWidget />
     </>
   );
 }
