@@ -25,6 +25,9 @@ dist-ssr/
 .DS_Store
 Thumbs.db
 
+# Agent secrets — never commit real API keys
+agent/config.py
+
 # Logs
 *.log
 npm-debug.log*

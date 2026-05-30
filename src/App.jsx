@@ -919,8 +919,15 @@ function Footer({ setPage }) {
 
 // ─── AI Chat ──────────────────────────────────────────────────────────────────
 
-// ⚠️ 测试用：API Key 直接写在前端，上线前务必换成后端代理
-const GROQ_API_KEY = "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";
+// API Key 从 localStorage 读取，首次使用时会弹窗提示填入
+const GROQ_API_KEY = (() => {
+  let k = localStorage.getItem("groq_api_key") || "";
+  if (!k) {
+    k = prompt("请输入你的 Groq API Key（只需输入一次，保存在本地）：") || "";
+    if (k) localStorage.setItem("groq_api_key", k);
+  }
+  return k;
+})();
 const GROQ_MODEL   = "llama-3.3-70b-versatile";
 const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
 
