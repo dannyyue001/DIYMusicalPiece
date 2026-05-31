@@ -171,9 +171,15 @@ function Chip({ children, color = COLOR.primary, outline = false }) {
 
 // ─── SongCard ─────────────────────────────────────────────────────────────────
 
-function SongCard({ song, onClick }) {
+function SongCard({ song, onClick, isFav = false, onToggleFav }) {
   const [hov, setHov] = useState(false);
   const col = COLOR[song.category] ?? COLOR.primary;
+
+  const handleFavClick = (e) => {
+    e.stopPropagation();
+    onToggleFav?.(song.id);
+  };
+
   return (
     <article
       onClick={() => onClick(song)}
@@ -183,14 +189,11 @@ function SongCard({ song, onClick }) {
         background: COLOR.card, borderRadius: 16, padding: "20px 22px",
         cursor: "pointer", position: "relative", overflow: "hidden",
         border: `2px solid ${hov ? col : "transparent"}`,
-        boxShadow: hov
-          ? `0 8px 28px ${col}28`
-          : "0 2px 12px rgba(0,0,0,0.07)",
+        boxShadow: hov ? `0 8px 28px ${col}28` : "0 2px 12px rgba(0,0,0,0.07)",
         transform: hov ? "translateY(-4px)" : "none",
         transition: "all 0.2s ease",
       }}
     >
-      {/* Decorative top bar */}
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, height: 4,
         background: `linear-gradient(90deg, ${col}, ${col}88)`,
@@ -212,6 +215,20 @@ function SongCard({ song, onClick }) {
             }}>NEW</span>
           )}
           <StarRating difficulty={song.difficulty} />
+          {/* 收藏心形按钮 */}
+          <button
+            onClick={handleFavClick}
+            title={isFav ? "取消收藏" : "收藏"}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 18, lineHeight: 1, padding: "2px 4px",
+              color: isFav ? "#ef4444" : "#d1d5db",
+              transition: "transform 0.15s, color 0.15s",
+              transform: isFav ? "scale(1.15)" : "scale(1)",
+            }}
+          >
+            {isFav ? "❤️" : "🤍"}
+          </button>
         </div>
       </div>
 
@@ -578,7 +595,7 @@ function CategoryGrid({ setActiveCat, setPage }) {
   );
 }
 
-function FeaturedRow({ onSongClick }) {
+function FeaturedRow({ onSongClick, favorites = [], onToggleFav }) {
   const featured = [...SONGS].sort((a, b) => b.isNew - a.isNew).slice(0, 4);
   return (
     <div style={{ padding: "48px 24px" }}>
@@ -588,28 +605,29 @@ function FeaturedRow({ onSongClick }) {
           <span style={{ fontSize: 13, color: COLOR.muted }}>点击查看完整简谱</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 18 }}>
-          {featured.map(s => <SongCard key={s.id} song={s} onClick={onSongClick} />)}
+          {featured.map(s => <SongCard key={s.id} song={s} onClick={onSongClick}
+            isFav={favorites.includes(s.id)} onToggleFav={onToggleFav} />)}
         </div>
       </div>
     </div>
   );
 }
 
-function HomePage({ setPage, setActiveCat, onSongClick }) {
+function HomePage({ setPage, setActiveCat, onSongClick, favorites, onToggleFav }) {
   return (
     <>
       <HeroSection setPage={setPage} />
       <StatsBar />
       <DailyPick onSongClick={onSongClick} />
       <CategoryGrid setActiveCat={setActiveCat} setPage={setPage} />
-      <FeaturedRow onSongClick={onSongClick} />
+      <FeaturedRow onSongClick={onSongClick} favorites={favorites} onToggleFav={onToggleFav} />
     </>
   );
 }
 
 // ─── Songs page ───────────────────────────────────────────────────────────────
 
-function SongsPage({ activeCat, setActiveCat, onSongClick }) {
+function SongsPage({ activeCat, setActiveCat, onSongClick, favorites = [], onToggleFav }) {
   const [search, setSearch] = useState("");
   const [diff, setDiff] = useState("全部");
 
@@ -683,7 +701,8 @@ function SongsPage({ activeCat, setActiveCat, onSongClick }) {
         <>
           <div style={{ fontSize: 13, color: COLOR.muted, marginBottom: 16 }}>显示 {filtered.length} / {SONGS.length} 首</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-            {filtered.map(s => <SongCard key={s.id} song={s} onClick={onSongClick} />)}
+            {filtered.map(s => <SongCard key={s.id} song={s} onClick={onSongClick}
+              isFav={favorites.includes(s.id)} onToggleFav={onToggleFav} />)}
           </div>
         </>
       )}
@@ -899,6 +918,34 @@ function Footer({ setPage }) {
 
 // 通过本地代理调用，Key 存在服务器端 server/.env，不暴露给浏览器
 const CHAT_PROXY_URL = "/api/chat";   // Vite 开发时代理到 localhost:3001
+
+// ─── 收藏功能（Cloudflare D1）────────────────────────────────────────────────
+
+const FAV_API = "/api/favorites";
+
+function getUserEmail() {
+  return localStorage.getItem("danny_music_email") || "";
+}
+function saveUserEmail(email) {
+  localStorage.setItem("danny_music_email", email.trim().toLowerCase());
+}
+
+async function fetchFavorites(email) {
+  if (!email) return [];
+  try {
+    const res = await fetch(`${FAV_API}?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    return data.favorites ?? [];
+  } catch { return []; }
+}
+
+async function toggleFavoriteAPI(email, songId, isFav) {
+  await fetch(FAV_API, {
+    method: isFav ? "DELETE" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, song_id: songId }),
+  });
+}
 
 // ─── 方案A RAG：关键词检索，只注入命中的曲目 ────────────────────────────────
 
@@ -1198,10 +1245,102 @@ const GLOBAL_CSS = `
 
 // ─── App root ─────────────────────────────────────────────────────────────────
 
+// ─── 邮箱输入弹窗 ─────────────────────────────────────────────────────────────
+
+function EmailModal({ onConfirm }) {
+  const [val, setVal] = useState("");
+  const [err, setErr] = useState("");
+
+  const submit = () => {
+    if (!val.includes("@")) { setErr("请输入有效的邮箱地址"); return; }
+    onConfirm(val.trim().toLowerCase());
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+      zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: 20, padding: "32px 28px", width: 340,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+      }}>
+        <div style={{ fontSize: 28, marginBottom: 10, textAlign: "center" }}>🎵</div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: COLOR.text, marginBottom: 8, textAlign: "center" }}>
+          用邮箱保存你的收藏
+        </h2>
+        <p style={{ fontSize: 13, color: COLOR.muted, lineHeight: 1.7, marginBottom: 20, textAlign: "center" }}>
+          换设备时输入同一个邮箱，收藏的曲子就会同步回来。
+        </p>
+        <input
+          type="email"
+          value={val}
+          onChange={e => { setVal(e.target.value); setErr(""); }}
+          onKeyDown={e => e.key === "Enter" && submit()}
+          placeholder="your@email.com"
+          autoFocus
+          style={{
+            width: "100%", border: `1.5px solid ${err ? "#ef4444" : COLOR.border}`,
+            borderRadius: 10, padding: "10px 14px", fontSize: 14,
+            outline: "none", marginBottom: 6, boxSizing: "border-box",
+          }}
+        />
+        {err && <p style={{ fontSize: 12, color: "#ef4444", marginBottom: 8 }}>{err}</p>}
+        <button onClick={submit} style={{
+          width: "100%", background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
+          color: "#fff", border: "none", borderRadius: 10, padding: "11px",
+          fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 4,
+        }}>
+          确认并开始收藏
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const [page, setPage]         = useState("home");
+  const [page, setPage]           = useState("home");
   const [activeCat, setActiveCat] = useState("all");
   const [selectedSong, setSong]   = useState(null);
+
+  // 收藏系统
+  const [userEmail, setUserEmail]     = useState(getUserEmail);
+  const [favorites, setFavorites]     = useState([]); // song_id 数组
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [pendingSongId, setPendingSongId]   = useState(null); // 待收藏的歌（触发邮箱弹窗前）
+
+  // 登录后拉取收藏
+  useEffect(() => {
+    if (userEmail) fetchFavorites(userEmail).then(setFavorites);
+  }, [userEmail]);
+
+  const handleToggleFav = useCallback(async (songId) => {
+    if (!userEmail) {
+      setPendingSongId(songId);
+      setShowEmailModal(true);
+      return;
+    }
+    const isFav = favorites.includes(songId);
+    setFavorites(prev => isFav ? prev.filter(id => id !== songId) : [...prev, songId]);
+    await toggleFavoriteAPI(userEmail, songId, isFav);
+  }, [userEmail, favorites]);
+
+  const handleEmailConfirm = useCallback(async (email) => {
+    saveUserEmail(email);
+    setUserEmail(email);
+    setShowEmailModal(false);
+    const favs = await fetchFavorites(email);
+    setFavorites(favs);
+    // 确认邮箱后，执行之前待收藏的操作
+    if (pendingSongId) {
+      const isFav = favs.includes(pendingSongId);
+      if (!isFav) {
+        setFavorites(prev => [...prev, pendingSongId]);
+        await toggleFavoriteAPI(email, pendingSongId, false);
+      }
+      setPendingSongId(null);
+    }
+  }, [pendingSongId]);
 
   const navigate = useCallback((p) => {
     setPage(p);
@@ -1210,15 +1349,17 @@ export default function App() {
 
   return (
     <>
-      {/* Inject keyframe styles once */}
       <style>{GLOBAL_CSS}</style>
 
       <div style={{ minHeight: "100vh", background: COLOR.bg }}>
-        <Header page={page} setPage={navigate} />
+        <Header page={page} setPage={navigate} userEmail={userEmail}
+          favCount={favorites.length} onAccountClick={() => setShowEmailModal(true)} />
 
         <main style={{ animation: "fadeIn 0.25s ease" }} key={page}>
-          {page === "home"  && <HomePage setPage={navigate} setActiveCat={setActiveCat} onSongClick={setSong} />}
-          {page === "songs" && <SongsPage activeCat={activeCat} setActiveCat={setActiveCat} onSongClick={setSong} />}
+          {page === "home"  && <HomePage setPage={navigate} setActiveCat={setActiveCat}
+            onSongClick={setSong} favorites={favorites} onToggleFav={handleToggleFav} />}
+          {page === "songs" && <SongsPage activeCat={activeCat} setActiveCat={setActiveCat}
+            onSongClick={setSong} favorites={favorites} onToggleFav={handleToggleFav} />}
           {page === "guide" && <GuidePage />}
           {page === "about" && <AboutPage />}
         </main>
@@ -1227,9 +1368,11 @@ export default function App() {
         <Footer setPage={navigate} />
       </div>
 
-      <SongModal song={selectedSong} onClose={() => setSong(null)} />
+      <SongModal song={selectedSong} onClose={() => setSong(null)}
+        favorites={favorites} onToggleFav={handleToggleFav} />
       <ScrollToTop />
       <AIChatWidget />
+      {showEmailModal && <EmailModal onConfirm={handleEmailConfirm} />}
     </>
   );
 }

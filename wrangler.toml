@@ -4,3 +4,8 @@ compatibility_date = "2024-09-23"
 
 [assets]
 directory = "./dist"
+
+[[d1_databases]]
+binding = "danny_music_logindb"
+database_name = "danny-music-logindb"
+database_id = "288226f1-0ace-4267-a6f1-ba8e04aecc49"
