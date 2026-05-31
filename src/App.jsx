@@ -35,105 +35,64 @@ const SONGS = [
     description: "最适合零基础的第一首曲子，旋律简单、节奏稳定。",
     keys: "1 1 5 5 6 6 5 — | 4 4 3 3 2 2 1 — | 5 5 4 4 3 3 2 — | 5 5 4 4 3 3 2 —",
     tips: "先用右手练熟旋律，再尝试左手加 Do-Mi-Sol 和弦。",
+    techniques: ["每个音弹完手指不要立刻抬起，感受音延续到下一拍再换", "先只练第一句「1 1 5 5 6 6 5」，弹 10 遍不出错再往后", "用脚轻踩地板打拍子，帮助保持匀速"],
     tags: ["零基础", "儿歌", "入门必学"],
   },
   {
     id: 2, title: "卡农（简易版）", category: "classical", difficulty: "简单", isNew: false,
     description: "帕赫贝尔卡农改编的单手简易版，旋律优美、广为人知。",
-    keys: "3 2 1 [7] 1 2 3 4 | 5 4 3 2 3 4 5 — | {1} [7] {1} 2 3 2 1 [6] | 1 2 3 — — — — —",
+    keys: "5 3 4 5 3 4 5 | [5] [6] [7] 1 2 3 4| 3 1 2 3 [3] [4] [5] 1 [7] 1 [6]",
     tips: "保持均匀节奏，每个音值一拍，慢速跟练效果更好。",
+    techniques: ["速度控制在 ♩=60，宁慢勿快，节奏均匀比速度更重要", "下行音阶容易越弹越快，专门挑出来慢练", "每个音力度保持一致，不要忽强忽弱"],
     tags: ["经典", "浪漫", "练节奏"],
   },
   {
-    id: 3, title: "晴天", category: "pop", difficulty: "简单", isNew: false,
-    description: "周杰伦热门曲目的超简化钢琴版，保留主旋律精华。",
-    keys: "[6] 5 3 5 6 {1} — | [6] 5 3 2 1 — — | 3 5 6 {1} {2} {1} 6 5 | 3 — — — — — — —",
-    tips: "副歌节奏稍快，先放慢到 60bpm 练熟再加速。",
-    tags: ["周杰伦", "流行", "热门"],
-  },
-  {
-    id: 4, title: "生日快乐歌", category: "children", difficulty: "入门", isNew: false,
+    id: 3, title: "生日快乐歌", category: "children", difficulty: "入门", isNew: false,
     description: "每个场合都用得到的经典曲目，5 个音搞定全曲。",
-    keys: "5 5 6 5 1 7 — | 5 5 6 5 2 1 — | 5 5 [5] 3 1 7 6 — | 4 4 3 1 2 1 —",
+    keys: "5 5 6 5 {1} 7 — | 5 5 6 5 {2} {1} — | 5 5 {5} {3} {1} 7 6 — | 4 4 3 1 2 1 —",
     tips: "三拍子要稳，每小节第一拍稍微重一点。",
+    techniques: ["这是三拍子（强弱弱），数着「1 2 3」弹，第1拍多用一点力", "第三句出现高音 {5}{3}，提前把手腕移到高音区", "弹熟后可以试着边弹边唱，练习手口配合"],
     tags: ["儿歌", "节日", "必学"],
   },
   {
-    id: 5, title: "菊花台", category: "pop", difficulty: "简单", isNew: false,
-    description: "周杰伦《满城尽带黄金甲》主题曲，旋律古风大气。",
-    keys: "3 5 6 {1} 6 5 3 — | 2 3 5 6 5 3 2 — | 1 2 3 5 6 5 3 2 | 1 — — — — — — —",
-    tips: "先练前奏 8 小节就能让人听出来。",
-    tags: ["周杰伦", "古风", "流行"],
-  },
-  {
-    id: 6, title: "欢乐颂", category: "classical", difficulty: "入门", isNew: false,
+    id: 4, title: "欢乐颂", category: "classical", difficulty: "入门", isNew: false,
     description: "贝多芬第九交响曲主题，公版曲目无版权顾虑。",
     keys: "3 3 4 5 5 4 3 2 | 1 1 2 3 3 2 2 — | 3 3 4 5 5 4 3 2 | 1 1 2 3 2 1 1 —",
     tips: "全曲在同一个八度内完成，右手不需要跨八度移位。",
+    techniques: ["全曲只用 1-5 五根手指，手不需要移位，先找好位置再弹", "相邻音之间手指自然交替，不要抬得太高（离键约 1cm 即可）", "前两句和后两句结尾不同（2 2 和 1 1），注意区分"],
     tags: ["贝多芬", "古典", "公版"],
   },
   {
-    id: 7, title: "少年（梦然）", category: "pop", difficulty: "简单", isNew: false,
+    id: 5, title: "少年（梦然）", category: "pop", difficulty: "简单", isNew: false,
     description: "旋律热血励志，节奏感强，简易版去掉复杂装饰音。",
     keys: "5 5 6 5 3 2 — — | 3 5 6 5 3 2 — — | 1 2 3 5 5 3 2 1 | [6] 1 2 — — — — —",
     tips: "跟着原曲打拍子再弹，更容易找到节奏感。",
+    techniques: ["前两句节奏完全相同，先把第一句弹熟，第二句自然就会了", "第三句「1 2 3 5 5 3 2 1」是快速下行，慢速分解练习再连起来", "结尾低音 [6] 换到左边键区弹，感受厚重感"],
     tags: ["励志", "流行", "热门"],
   },
   {
-    id: 8, title: "天空之城", category: "classical", difficulty: "中等", isNew: false,
+    id: 6, title: "天空之城", category: "classical", difficulty: "中等", isNew: false,
     description: "宫崎骏动画经典配乐，旋律飘逸，简化版保留主旋律。",
     keys: "5 3 2 3 5 — 3 5 | 6 5 3 5 6 — — — | 5 3 2 3 5 — {1} — | 6 5 3 2 1 — — —",
     tips: "慢弹才能体现空灵感，建议 ♩=72。",
+    techniques: ["触键要轻柔，用指肉而不是指尖，声音才不会硬", "延音踏板：每小节第一拍踩下，下一小节换踏板（有踏板的同学）", "第三句跳到高音 {1}，提前把手移好位置，不要慌乱"],
     tags: ["久石让", "动漫", "经典"],
   },
   {
-    id: 9, title: "虫儿飞", category: "children", difficulty: "入门", isNew: false,
-    description: "旋律柔和舒缓，适合练习连音奏法。",
-    keys: "3 3 2 1 2 3 5 — | 3 3 2 1 2 1 [6] — | 3 3 2 1 2 3 5 3 | 1 — — — — — — —",
-    tips: "手指不要抬太高，贴键慢弹体现连贯感。",
-    tags: ["儿歌", "轻柔", "入门"],
-  },
-  {
-    id: 10, title: "江南 Style 改编版", category: "keyboard", difficulty: "简单", isNew: false,
+    id: 7, title: "江南 Style 改编版", category: "keyboard", difficulty: "简单", isNew: false,
     description: "电子琴节奏感超强版本，搭配打击节拍音色效果炸裂。",
     keys: "5 5 3 5 {1} — 6 1 | 3 1 [6] — [5] [6] 1 2 | 3 — 3 2 1 — — — | [6] 1 2 3 — — — —",
     tips: "推荐电子琴切换「流行」节奏音色，右手弹主旋律即可。",
+    techniques: ["先开自动伴奏节奏，只听 2-3 个循环找到感觉再开始弹旋律", "低八度音 [5][6] 在键盘左侧，提前找好位置避免弹错", "重音落在每小节第一拍，其余音轻一些，节奏感自然出来"],
     tags: ["电子琴", "节奏", "趣味"],
   },
   {
-    id: 11, title: "两只老虎", category: "children", difficulty: "入门", isNew: false,
+    id: 8, title: "两只老虎", category: "children", difficulty: "入门", isNew: false,
     description: "最经典的儿歌，几分钟学会，练五声音阶好素材。",
     keys: "1 2 3 1 — 1 2 3 1 — | 3 4 5 — 3 4 5 — | 5 6 5 4 3 1 — 5 6 5 4 3 1 — | 1 [5] 1 — 1 [5] 1 —",
     tips: "只用 Do Re Mi Fa Sol 五个音，非常适合绝对初学者。",
+    techniques: ["前两句完全相同，弹熟一句等于会了一半", "第三句「5 6 5 4 3 1」是下行，注意不要越弹越快", "结尾 [5] 是低八度 Sol，找到左边第二组的 Sol 键"],
     tags: ["儿歌", "零基础", "启蒙"],
-  },
-  {
-    id: 12, title: "恋爱循环", category: "keyboard", difficulty: "中等", isNew: true,
-    description: "动漫《猫咪日记》片头曲电子琴版，清新欢快。",
-    keys: "{1} 6 5 3 5 6 — — | {1} 6 5 3 2 1 — — | 3 5 6 {1} 6 5 3 — | 2 3 5 — 1 — — —",
-    tips: "选「钢琴」或「电钢琴」音色，加一点混响效果更佳。",
-    tags: ["动漫", "电子琴", "欢快"],
-  },
-  {
-    id: 13, title: "夜曲（肖邦）", category: "classical", difficulty: "中等", isNew: true,
-    description: "肖邦夜曲 Op.9 No.2 极简版，只保留旋律声部，意境深远。",
-    keys: "3 — 5 6 5 3 5 2 | 1 — 3 2 1 [7] 1 — | [6] — 1 2 1 [6] 1 [5] | 3 — — — — — — —",
-    tips: "每个音都要「唱出来」，弹完一个音后手腕微微抬起帮助延音。",
-    tags: ["肖邦", "古典", "意境"],
-  },
-  {
-    id: 14, title: "起风了（买辣椒也用券）", category: "pop", difficulty: "中等", isNew: true,
-    description: "近年最火的国风流行曲之一，副歌旋律辨识度极高。",
-    keys: "3 5 6 {1} — 6 5 3 | 2 3 5 — 3 2 1 — | [6] 1 2 3 — 2 1 [6] | 1 — — — — — — —",
-    tips: "前奏和副歌速度有变化，建议先分段练，再合并完整演奏。",
-    tags: ["国风", "流行", "热门"],
-  },
-  {
-    id: 15, title: "英雄之证", category: "game", difficulty: "中等", isNew: true,
-    description: "怪物猎人主题曲，气势磅礴，简化版保留核心旋律。",
-    keys: "1 2 3 — 5 — 3 2 | 1 [6] — — [5] [6] 1 2 | 3 2 1 — [6] — — — | [5] [6] 1 2 3 — — —",
-    tips: "建议先分段练，节奏要稳，突出强拍气势才出来。",
-    tags: ["游戏", "经典", "热门"],
   },
 ];
 
@@ -941,12 +900,74 @@ function Footer({ setPage }) {
 // 通过本地代理调用，Key 存在服务器端 server/.env，不暴露给浏览器
 const CHAT_PROXY_URL = "/api/chat";   // Vite 开发时代理到 localhost:3001
 
-const CHAT_SYSTEM = `你是零基础钢琴/电子琴 AI 助教，只面向完全不会弹琴的新手。
-规则：
-1. 语言通俗，必须用术语时立刻附大白话解释
-2. 只讲简化版本，全程使用数字简谱 1234567
-3. 回答分点说明，每段控制 200 字以内
-4. 用户问某首歌时，给出简化练习建议和顺序`;
+// ─── 方案A RAG：关键词检索，只注入命中的曲目 ────────────────────────────────
+
+/**
+ * 从用户问题里检索相关曲目（最多返回 3 首）
+ * 匹配逻辑：标题 > 标签 > 分类 > 描述，按权重排序
+ */
+function retrieveSongs(query) {
+  if (!query) return [];
+  const q = query.toLowerCase();
+
+  const scored = SONGS.map(song => {
+    let score = 0;
+    const title = song.title.toLowerCase();
+    const tags  = song.tags.join(" ").toLowerCase();
+    const desc  = song.description.toLowerCase();
+    const cat   = song.category.toLowerCase();
+
+    // 标题完整命中权重最高
+    if (title.includes(q) || q.includes(title.replace(/[（）()【】]/g, ""))) score += 10;
+    // 标题中单字命中
+    for (const char of q) {
+      if (char.trim() && title.includes(char)) score += 1;
+    }
+    // 标签命中
+    if (tags.includes(q)) score += 5;
+    for (const char of q) {
+      if (char.trim() && tags.includes(char)) score += 0.5;
+    }
+    // 描述/分类命中
+    if (desc.includes(q) || cat.includes(q)) score += 2;
+
+    return { song, score };
+  });
+
+  return scored
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(x => x.song);
+}
+
+/** 根据检索结果动态生成 system prompt */
+function buildSystemPrompt(userQuery) {
+  const BASE = `你是"Danny的音乐馆"网站的 AI 钢琴助教，专门帮助零基础新手学弹钢琴/电子琴。
+
+【简谱符号说明】
+- 1-7 = Do Re Mi Fa Sol La Si，— = 延音，0 = 休止，| = 小节线
+- [6][7][5] = 低八度，{1}{2}{3} = 高八度
+
+【回答规则】
+1. 语言通俗，用术语时立刻附大白话解释
+2. 用户问曲库里的歌时，直接给出简谱，并逐段讲解怎么练
+3. 用户问曲库外的歌时，说明网站暂未收录，再用通用知识帮助
+4. 回答分点说明，每段控制 200 字以内`;
+
+  const hits = retrieveSongs(userQuery);
+  if (hits.length === 0) return BASE;
+
+  const catalog = hits.map(s =>
+    `《${s.title}》| 难度:${s.difficulty} | 简谱:${s.keys} | 贴士:${s.tips}` +
+    (s.techniques ? ` | 技巧:${s.techniques.join("；")}` : "")
+  ).join("\n");
+
+  return `${BASE}\n\n【检索到的相关曲目】\n${catalog}`;
+}
+
+// 向后兼容：保留 CHAT_SYSTEM 作为无查询时的默认 prompt
+const CHAT_SYSTEM = buildSystemPrompt("");
 
 async function callGroq(messages) {
   const tag = "[AI Chat]";
@@ -1015,8 +1036,10 @@ function AIChatWidget() {
     setInput("");
     setLoading(true);
 
+    // RAG：根据用户问题动态检索相关曲目，注入 system prompt
+    const dynamicSystem = buildSystemPrompt(q);
     const apiMessages = [
-      { role: "system", content: CHAT_SYSTEM },
+      { role: "system", content: dynamicSystem },
       ...newHistory.filter(m => m.role !== "system"),
     ];
 
