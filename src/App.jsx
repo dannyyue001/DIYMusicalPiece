@@ -511,8 +511,8 @@ function StatsBar() {
 }
 
 function DailyPick({ onSongClick }) {
-  // Always picks the latest NEW song, or song #8 as editorial choice
-  const pick = SONGS.find(s => s.isNew) ?? SONGS[7];
+  const pick = SONGS.find(s => s.isNew) ?? SONGS[SONGS.length - 1];
+  if (!pick) return null;
   return (
     <div style={{ padding: "48px 24px 0" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
