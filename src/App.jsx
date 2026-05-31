@@ -921,30 +921,58 @@ const CHAT_PROXY_URL = "/api/chat";   // Vite 开发时代理到 localhost:3001
 
 // ─── 收藏功能（Cloudflare D1）────────────────────────────────────────────────
 
-const FAV_API = "/api/favorites";
+// ─── 收藏功能（Cloudflare D1 + JWT 认证）────────────────────────────────────
 
-function getUserEmail() {
-  return localStorage.getItem("danny_music_email") || "";
+const FAV_API  = "/api/favorites";
+const AUTH_API = "/api/auth";
+
+function getToken()          { return localStorage.getItem("danny_music_token") || ""; }
+function getUsername()       { return localStorage.getItem("danny_music_username") || ""; }
+function saveAuth(token, username) {
+  localStorage.setItem("danny_music_token", token);
+  localStorage.setItem("danny_music_username", username);
 }
-function saveUserEmail(email) {
-  localStorage.setItem("danny_music_email", email.trim().toLowerCase());
+function clearAuth() {
+  localStorage.removeItem("danny_music_token");
+  localStorage.removeItem("danny_music_username");
 }
 
-async function fetchFavorites(email) {
-  if (!email) return [];
+function authHeaders() {
+  return { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` };
+}
+
+async function fetchFavorites() {
+  if (!getToken()) return [];
   try {
-    const res = await fetch(`${FAV_API}?email=${encodeURIComponent(email)}`);
+    const res = await fetch(FAV_API, { headers: authHeaders() });
+    if (!res.ok) return [];
     const data = await res.json();
     return data.favorites ?? [];
   } catch { return []; }
 }
 
-async function toggleFavoriteAPI(email, songId, isFav) {
+async function toggleFavoriteAPI(songId, isFav) {
   await fetch(FAV_API, {
     method: isFav ? "DELETE" : "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, song_id: songId }),
+    headers: authHeaders(),
+    body: JSON.stringify({ song_id: songId }),
   });
+}
+
+async function apiLogin(email, password) {
+  const res = await fetch(`${AUTH_API}/login`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  return res.json();
+}
+
+async function apiRegister(email, username, password) {
+  const res = await fetch(`${AUTH_API}/register`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, username, password }),
+  });
+  return res.json();
 }
 
 // ─── 方案A RAG：关键词检索，只注入命中的曲目 ────────────────────────────────
@@ -1245,53 +1273,92 @@ const GLOBAL_CSS = `
 
 // ─── App root ─────────────────────────────────────────────────────────────────
 
-// ─── 邮箱输入弹窗 ─────────────────────────────────────────────────────────────
+// ─── 登录/注册弹窗 ────────────────────────────────────────────────────────────
 
-function EmailModal({ onConfirm }) {
-  const [val, setVal] = useState("");
-  const [err, setErr] = useState("");
+function AuthModal({ onSuccess, onClose }) {
+  const [tab, setTab]   = useState("login"); // "login" | "register"
+  const [email, setEmail]       = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr]   = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const submit = () => {
-    if (!val.includes("@")) { setErr("请输入有效的邮箱地址"); return; }
-    onConfirm(val.trim().toLowerCase());
+  const inputStyle = (hasErr) => ({
+    width: "100%", border: `1.5px solid ${hasErr ? "#ef4444" : COLOR.border}`,
+    borderRadius: 10, padding: "10px 14px", fontSize: 14,
+    outline: "none", marginBottom: 10, boxSizing: "border-box",
+    fontFamily: "inherit",
+  });
+
+  const submit = async () => {
+    setErr(""); setLoading(true);
+    try {
+      let data;
+      if (tab === "login") {
+        data = await apiLogin(email, password);
+      } else {
+        if (username.length < 2) { setErr("用户名至少 2 个字符"); return; }
+        data = await apiRegister(email, username, password);
+      }
+      if (data.error) { setErr(data.error); return; }
+      saveAuth(data.token, data.username);
+      onSuccess(data.username);
+    } catch { setErr("网络错误，请重试"); }
+    finally { setLoading(false); }
   };
 
   return (
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
       zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center",
-    }}>
+    }} onClick={onClose}>
       <div style={{
-        background: "#fff", borderRadius: 20, padding: "32px 28px", width: 340,
+        background: "#fff", borderRadius: 20, padding: "32px 28px", width: 360,
         boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-      }}>
-        <div style={{ fontSize: 28, marginBottom: 10, textAlign: "center" }}>🎵</div>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: COLOR.text, marginBottom: 8, textAlign: "center" }}>
-          用邮箱保存你的收藏
+      }} onClick={e => e.stopPropagation()}>
+
+        <div style={{ fontSize: 28, textAlign: "center", marginBottom: 6 }}>🎵</div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: COLOR.text, textAlign: "center", marginBottom: 18 }}>
+          {tab === "login" ? "登录你的账号" : "注册新账号"}
         </h2>
-        <p style={{ fontSize: 13, color: COLOR.muted, lineHeight: 1.7, marginBottom: 20, textAlign: "center" }}>
-          换设备时输入同一个邮箱，收藏的曲子就会同步回来。
-        </p>
-        <input
-          type="email"
-          value={val}
-          onChange={e => { setVal(e.target.value); setErr(""); }}
+
+        {/* Tab 切换 */}
+        <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 10, padding: 4, marginBottom: 20 }}>
+          {["login", "register"].map(t => (
+            <button key={t} onClick={() => { setTab(t); setErr(""); }} style={{
+              flex: 1, padding: "8px", border: "none", borderRadius: 8, cursor: "pointer",
+              fontWeight: 700, fontSize: 13, transition: "all 0.15s",
+              background: tab === t ? "#fff" : "transparent",
+              color: tab === t ? COLOR.primary : COLOR.muted,
+              boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+            }}>{t === "login" ? "登录" : "注册"}</button>
+          ))}
+        </div>
+
+        <input type="email" placeholder="邮箱" value={email}
+          onChange={e => { setEmail(e.target.value); setErr(""); }}
+          style={inputStyle(false)} />
+
+        {tab === "register" && (
+          <input type="text" placeholder="用户名（昵称）" value={username}
+            onChange={e => { setUsername(e.target.value); setErr(""); }}
+            style={inputStyle(false)} />
+        )}
+
+        <input type="password" placeholder="密码（至少 6 位）" value={password}
+          onChange={e => { setPassword(e.target.value); setErr(""); }}
           onKeyDown={e => e.key === "Enter" && submit()}
-          placeholder="your@email.com"
-          autoFocus
-          style={{
-            width: "100%", border: `1.5px solid ${err ? "#ef4444" : COLOR.border}`,
-            borderRadius: 10, padding: "10px 14px", fontSize: 14,
-            outline: "none", marginBottom: 6, boxSizing: "border-box",
-          }}
-        />
-        {err && <p style={{ fontSize: 12, color: "#ef4444", marginBottom: 8 }}>{err}</p>}
-        <button onClick={submit} style={{
+          style={inputStyle(false)} />
+
+        {err && <p style={{ fontSize: 12, color: "#ef4444", marginBottom: 8, marginTop: -4 }}>{err}</p>}
+
+        <button onClick={submit} disabled={loading} style={{
           width: "100%", background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
-          color: "#fff", border: "none", borderRadius: 10, padding: "11px",
-          fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 4,
+          color: "#fff", border: "none", borderRadius: 10, padding: "12px",
+          fontWeight: 700, fontSize: 14, cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.7 : 1, marginTop: 4,
         }}>
-          确认并开始收藏
+          {loading ? "请稍候…" : tab === "login" ? "登录" : "注册并开始收藏"}
         </button>
       </div>
     </div>
@@ -1303,44 +1370,45 @@ export default function App() {
   const [activeCat, setActiveCat] = useState("all");
   const [selectedSong, setSong]   = useState(null);
 
-  // 收藏系统
-  const [userEmail, setUserEmail]     = useState(getUserEmail);
-  const [favorites, setFavorites]     = useState([]); // song_id 数组
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [pendingSongId, setPendingSongId]   = useState(null); // 待收藏的歌（触发邮箱弹窗前）
+  // 收藏系统（JWT 认证）
+  const [username, setUsername]   = useState(getUsername);
+  const [favorites, setFavorites] = useState([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingSongId, setPendingSongId] = useState(null);
 
   // 登录后拉取收藏
   useEffect(() => {
-    if (userEmail) fetchFavorites(userEmail).then(setFavorites);
-  }, [userEmail]);
+    if (getToken()) fetchFavorites().then(setFavorites);
+  }, [username]);
 
   const handleToggleFav = useCallback(async (songId) => {
-    if (!userEmail) {
+    if (!getToken()) {
       setPendingSongId(songId);
-      setShowEmailModal(true);
+      setShowAuthModal(true);
       return;
     }
     const isFav = favorites.includes(songId);
     setFavorites(prev => isFav ? prev.filter(id => id !== songId) : [...prev, songId]);
-    await toggleFavoriteAPI(userEmail, songId, isFav);
-  }, [userEmail, favorites]);
+    await toggleFavoriteAPI(songId, isFav);
+  }, [favorites]);
 
-  const handleEmailConfirm = useCallback(async (email) => {
-    saveUserEmail(email);
-    setUserEmail(email);
-    setShowEmailModal(false);
-    const favs = await fetchFavorites(email);
+  const handleAuthSuccess = useCallback(async (uname) => {
+    setUsername(uname);
+    setShowAuthModal(false);
+    const favs = await fetchFavorites();
     setFavorites(favs);
-    // 确认邮箱后，执行之前待收藏的操作
-    if (pendingSongId) {
-      const isFav = favs.includes(pendingSongId);
-      if (!isFav) {
-        setFavorites(prev => [...prev, pendingSongId]);
-        await toggleFavoriteAPI(email, pendingSongId, false);
-      }
+    if (pendingSongId && !favs.includes(pendingSongId)) {
+      setFavorites(prev => [...prev, pendingSongId]);
+      await toggleFavoriteAPI(pendingSongId, false);
       setPendingSongId(null);
     }
   }, [pendingSongId]);
+
+  const handleLogout = useCallback(() => {
+    clearAuth();
+    setUsername("");
+    setFavorites([]);
+  }, []);
 
   const navigate = useCallback((p) => {
     setPage(p);
@@ -1352,8 +1420,10 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
 
       <div style={{ minHeight: "100vh", background: COLOR.bg }}>
-        <Header page={page} setPage={navigate} userEmail={userEmail}
-          favCount={favorites.length} onAccountClick={() => setShowEmailModal(true)} />
+        <Header page={page} setPage={navigate} username={username}
+          favCount={favorites.length}
+          onAccountClick={() => setShowAuthModal(true)}
+          onLogout={handleLogout} />
 
         <main style={{ animation: "fadeIn 0.25s ease" }} key={page}>
           {page === "home"  && <HomePage setPage={navigate} setActiveCat={setActiveCat}
@@ -1372,7 +1442,7 @@ export default function App() {
         favorites={favorites} onToggleFav={handleToggleFav} />
       <ScrollToTop />
       <AIChatWidget />
-      {showEmailModal && <EmailModal onConfirm={handleEmailConfirm} />}
+      {showAuthModal && <AuthModal onSuccess={handleAuthSuccess} onClose={() => setShowAuthModal(false)} />}
     </>
   );
 }
