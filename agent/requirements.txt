@@ -1,1 +1,6 @@
 openai>=1.40.0
+
+# 扒谱功能依赖（可选，用到模式5时再安装）
+basic-pitch>=0.3.0      # Spotify 音频转 MIDI
+music21>=9.0.0          # MIDI 解析与乐理分析
+pretty_midi>=0.2.10     # MIDI 辅助处理

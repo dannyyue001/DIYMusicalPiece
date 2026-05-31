@@ -33,106 +33,106 @@ const SONGS = [
   {
     id: 1, title: "小星星", category: "children", difficulty: "入门", isNew: false,
     description: "最适合零基础的第一首曲子，旋律简单、节奏稳定。",
-    keys: "1 1 5 5 6 6 5 — 4 4 3 3 2 2 1",
+    keys: "1 1 5 5 6 6 5 — | 4 4 3 3 2 2 1 — | 5 5 4 4 3 3 2 — | 5 5 4 4 3 3 2 —",
     tips: "先用右手练熟旋律，再尝试左手加 Do-Mi-Sol 和弦。",
     tags: ["零基础", "儿歌", "入门必学"],
   },
   {
     id: 2, title: "卡农（简易版）", category: "classical", difficulty: "简单", isNew: false,
     description: "帕赫贝尔卡农改编的单手简易版，旋律优美、广为人知。",
-    keys: "3 5 6 1 6 5 3 5 — 6 5 6 1",
+    keys: "3 2 1 [7] 1 2 3 4 | 5 4 3 2 3 4 5 — | {1} [7] {1} 2 3 2 1 [6] | 1 2 3 — — — — —",
     tips: "保持均匀节奏，每个音值一拍，慢速跟练效果更好。",
     tags: ["经典", "浪漫", "练节奏"],
   },
   {
     id: 3, title: "晴天", category: "pop", difficulty: "简单", isNew: false,
     description: "周杰伦热门曲目的超简化钢琴版，保留主旋律精华。",
-    keys: "5 6 5 3 2 1 2 3 — 5 6 5 3",
+    keys: "[6] 5 3 5 6 {1} — | [6] 5 3 2 1 — — | 3 5 6 {1} {2} {1} 6 5 | 3 — — — — — — —",
     tips: "副歌节奏稍快，先放慢到 60bpm 练熟再加速。",
     tags: ["周杰伦", "流行", "热门"],
   },
   {
     id: 4, title: "生日快乐歌", category: "children", difficulty: "入门", isNew: false,
     description: "每个场合都用得到的经典曲目，5 个音搞定全曲。",
-    keys: "5 5 6 5 1 7 — 5 5 6 5 2 1",
+    keys: "5 5 6 5 1 7 — | 5 5 6 5 2 1 — | 5 5 [5] 3 1 7 6 — | 4 4 3 1 2 1 —",
     tips: "三拍子要稳，每小节第一拍稍微重一点。",
     tags: ["儿歌", "节日", "必学"],
   },
   {
     id: 5, title: "菊花台", category: "pop", difficulty: "简单", isNew: false,
     description: "周杰伦《满城尽带黄金甲》主题曲，旋律古风大气。",
-    keys: "6 5 3 5 6 1 — 6 5 3 2 1",
+    keys: "3 5 6 {1} 6 5 3 — | 2 3 5 6 5 3 2 — | 1 2 3 5 6 5 3 2 | 1 — — — — — — —",
     tips: "先练前奏 8 小节就能让人听出来。",
     tags: ["周杰伦", "古风", "流行"],
   },
   {
     id: 6, title: "欢乐颂", category: "classical", difficulty: "入门", isNew: false,
     description: "贝多芬第九交响曲主题，公版曲目无版权顾虑。",
-    keys: "3 3 4 5 5 4 3 2 1 1 2 3 — 3 2 2",
+    keys: "3 3 4 5 5 4 3 2 | 1 1 2 3 3 2 2 — | 3 3 4 5 5 4 3 2 | 1 1 2 3 2 1 1 —",
     tips: "全曲在同一个八度内完成，右手不需要跨八度移位。",
     tags: ["贝多芬", "古典", "公版"],
   },
   {
     id: 7, title: "少年（梦然）", category: "pop", difficulty: "简单", isNew: false,
     description: "旋律热血励志，节奏感强，简易版去掉复杂装饰音。",
-    keys: "1 2 3 5 3 2 1 — 6 1 2 3 5 3 2",
+    keys: "5 5 6 5 3 2 — — | 3 5 6 5 3 2 — — | 1 2 3 5 5 3 2 1 | [6] 1 2 — — — — —",
     tips: "跟着原曲打拍子再弹，更容易找到节奏感。",
     tags: ["励志", "流行", "热门"],
   },
   {
     id: 8, title: "天空之城", category: "classical", difficulty: "中等", isNew: false,
     description: "宫崎骏动画经典配乐，旋律飘逸，简化版保留主旋律。",
-    keys: "5 4 3 4 5 1 — 3 2 1 2 3 5 4 3",
+    keys: "5 3 2 3 5 — 3 5 | 6 5 3 5 6 — — — | 5 3 2 3 5 — {1} — | 6 5 3 2 1 — — —",
     tips: "慢弹才能体现空灵感，建议 ♩=72。",
     tags: ["久石让", "动漫", "经典"],
   },
   {
     id: 9, title: "虫儿飞", category: "children", difficulty: "入门", isNew: false,
     description: "旋律柔和舒缓，适合练习连音奏法。",
-    keys: "3 3 2 1 2 3 5 — 3 3 2 1 2 1 6",
+    keys: "3 3 2 1 2 3 5 — | 3 3 2 1 2 1 [6] — | 3 3 2 1 2 3 5 3 | 1 — — — — — — —",
     tips: "手指不要抬太高，贴键慢弹体现连贯感。",
     tags: ["儿歌", "轻柔", "入门"],
   },
   {
     id: 10, title: "江南 Style 改编版", category: "keyboard", difficulty: "简单", isNew: false,
     description: "电子琴节奏感超强版本，搭配打击节拍音色效果炸裂。",
-    keys: "1 3 5 3 1 — 6 1 3 1 6 — 5 6 1 2 3",
+    keys: "5 5 3 5 {1} — 6 1 | 3 1 [6] — [5] [6] 1 2 | 3 — 3 2 1 — — — | [6] 1 2 3 — — — —",
     tips: "推荐电子琴切换「流行」节奏音色，右手弹主旋律即可。",
     tags: ["电子琴", "节奏", "趣味"],
   },
   {
     id: 11, title: "两只老虎", category: "children", difficulty: "入门", isNew: false,
     description: "最经典的儿歌，几分钟学会，练五声音阶好素材。",
-    keys: "1 2 3 1 — 1 2 3 1 — 3 4 5 — 3 4 5",
+    keys: "1 2 3 1 — 1 2 3 1 — | 3 4 5 — 3 4 5 — | 5 6 5 4 3 1 — 5 6 5 4 3 1 — | 1 [5] 1 — 1 [5] 1 —",
     tips: "只用 Do Re Mi Fa Sol 五个音，非常适合绝对初学者。",
     tags: ["儿歌", "零基础", "启蒙"],
   },
   {
     id: 12, title: "恋爱循环", category: "keyboard", difficulty: "中等", isNew: true,
     description: "动漫《猫咪日记》片头曲电子琴版，清新欢快。",
-    keys: "5 5 6 5 — 3 2 1 — 3 3 4 3 — 1 6 5",
+    keys: "{1} 6 5 3 5 6 — — | {1} 6 5 3 2 1 — — | 3 5 6 {1} 6 5 3 — | 2 3 5 — 1 — — —",
     tips: "选「钢琴」或「电钢琴」音色，加一点混响效果更佳。",
     tags: ["动漫", "电子琴", "欢快"],
   },
   {
     id: 13, title: "夜曲（肖邦）", category: "classical", difficulty: "中等", isNew: true,
     description: "肖邦夜曲 Op.9 No.2 极简版，只保留旋律声部，意境深远。",
-    keys: "3 — 5 6 5 3 2 — 1 — 3 2 1 6 5",
+    keys: "3 — 5 6 5 3 5 2 | 1 — 3 2 1 [7] 1 — | [6] — 1 2 1 [6] 1 [5] | 3 — — — — — — —",
     tips: "每个音都要「唱出来」，弹完一个音后手腕微微抬起帮助延音。",
     tags: ["肖邦", "古典", "意境"],
   },
   {
     id: 14, title: "起风了（买辣椒也用券）", category: "pop", difficulty: "中等", isNew: true,
     description: "近年最火的国风流行曲之一，副歌旋律辨识度极高。",
-    keys: "1 2 3 5 — 6 5 3 2 — 1 6 5 — 3 5 6 1",
+    keys: "3 5 6 {1} — 6 5 3 | 2 3 5 — 3 2 1 — | [6] 1 2 3 — 2 1 [6] | 1 — — — — — — —",
     tips: "前奏和副歌速度有变化，建议先分段练，再合并完整演奏。",
     tags: ["国风", "流行", "热门"],
   },
   {
     id: 15, title: "英雄之证", category: "game", difficulty: "中等", isNew: true,
-    description: "怪物猎人主题曲。",
-    keys: "2 6(low) 2 3 — 3 2 6(low) 6 —  5 4 3 — 1 — 2 3 4 — 3 2 3 — 1 — 6(low) ",
-    tips: "建议先分段练，再合并完整演奏。",
+    description: "怪物猎人主题曲，气势磅礴，简化版保留核心旋律。",
+    keys: "1 2 3 — 5 — 3 2 | 1 [6] — — [5] [6] 1 2 | 3 2 1 — [6] — — — | [5] [6] 1 2 3 — — —",
+    tips: "建议先分段练，节奏要稳，突出强拍气势才出来。",
     tags: ["游戏", "经典", "热门"],
   },
 ];
@@ -149,9 +149,9 @@ const GUIDE_SECTIONS = [
   {
     id: "notation", icon: "📖", title: "读懂简谱",
     content: [
-      "数字 1-7 对应 Do Re Mi Fa Sol La Si，0 表示休止（停顿），— 表示延音（上一个音继续响）。",
-      "数字下方加一点 = 低八度，上方加一点 = 高八度。初学先只用中央组（无点）。",
-      "节拍线 | 把乐谱分成小节，每小节拍数由节奏类型决定，4/4 拍最常见 = 每小节 4 拍。",
+      "数字 1-7 对应 Do Re Mi Fa Sol La Si。0 表示休止（停顿一拍），— 表示延音（上一个音继续响一拍）。",
+      "八度标记：[5] [6] [7] 表示低八度（往左弹低一个八度），{1} {2} {3} 表示高八度（往右弹高一个八度）。初学者先只弹没有括号的普通音即可。",
+      "| 是小节线，把旋律分成等长的段落，方便对照节拍。4/4 拍最常见，每小节弹 4 拍。",
     ],
   },
   {
@@ -331,6 +331,25 @@ function SongModal({ song, onClose }) {
           </div>
           <div style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 5, color: COLOR.text, fontWeight: 700, lineHeight: 2.2 }}>
             {song.keys}
+          </div>
+          {/* 符号说明 */}
+          <div style={{
+            marginTop: 14, paddingTop: 12, borderTop: "1px solid #e5e7eb",
+            display: "flex", flexWrap: "wrap", gap: "6px 18px",
+          }}>
+            {[
+              ["1–7", "Do 到 Si"],
+              ["—", "延音（续拍）"],
+              ["0", "休止（停顿）"],
+              ["|", "小节线"],
+              ["[6]", "低八度"],
+              ["{1}", "高八度"],
+            ].map(([sym, desc]) => (
+              <span key={sym} style={{ fontSize: 11, color: "#6b7280" }}>
+                <span style={{ fontFamily: "monospace", fontWeight: 700, color: COLOR.primary }}>{sym}</span>
+                {" "}{desc}
+              </span>
+            ))}
           </div>
         </div>
 

@@ -13,6 +13,7 @@ agent.py — Danny音乐馆 AI Agent 主程序
 import json
 import re
 import sys
+import traceback
 
 # Windows 终端强制 UTF-8，避免中文/emoji 编码错误
 # reconfigure() 比替换 stdout 安全，不会破坏 Ctrl+C
@@ -306,6 +307,67 @@ def mode_chat():
 
 # ─── 主菜单 ───────────────────────────────────────────────────────────────────
 
+def mode_transcribe():
+    """扒谱模式：音频文件 → 数字简谱"""
+    print(h("\n🎵 扒谱模式"))
+    print(dim("输入音频文件路径（MP3 / WAV / M4A / FLAC），自动转换为数字简谱\n"))
+    print(dim("⚠️  首次使用需安装依赖：pip install basic-pitch music21\n"))
+
+    audio_path = input(label("音频文件路径：")).strip().strip('"').strip("'")
+    if not audio_path:
+        print(dim("  已取消"))
+        return
+
+    song_title = input(label("曲目名称（可回车跳过）：")).strip()
+
+    print(dim("\n  转录后端："))
+    print(dim("  [1] piano_transcription（钢琴专用，准确率高，推荐）"))
+    print(dim("  [2] basic-pitch（通用，适合人声/吉他/其他乐器）"))
+    backend_choice = input(label("选择 [1/2，回车=1]：")).strip()
+    backend = "basic" if backend_choice == "2" else "piano"
+
+    keep = input(label("是否保留中间 MIDI 文件？[y/N]：")).strip().lower() == "y"
+
+    try:
+        from music_processor import transcribe_and_simplify
+    except ImportError as e:
+        print(f"{RED}导入失败：{e}{RESET}")
+        return
+
+    try:
+        result = transcribe_and_simplify(audio_path, song_title=song_title,
+                                         keep_midi=keep, backend=backend)
+
+        print()
+        print(h(f"━━━━ 扒谱结果：《{song_title or '未知曲目'}》━━━━"))
+        print(label("调性：")       + result.get("key", ""))
+        print(label("难度：")       + result.get("difficulty", ""))
+        print(label("速度建议：")   + result.get("tempo_suggestion", ""))
+        print(label("旋律特点：")   + result.get("summary", ""))
+        print(label("练习贴士：")   + result.get("tips", ""))
+        print()
+        print(label("数字简谱："))
+        print(f"\n{result.get('jianpu', '')}\n")
+
+        if keep and result.get("midi_path"):
+            print(dim(f"  MIDI 文件：{result['midi_path']}"))
+
+        # 提示可复制到 App.jsx
+        print(h("━━━━ 复制到 App.jsx 的 keys 字段 ━━━━"))
+        jianpu_oneline = result.get("jianpu", "").replace("\n", " — ")
+        print(f'  keys: "{jianpu_oneline}",')
+        print()
+
+    except FileNotFoundError as e:
+        print(f"{RED}文件未找到：{e}{RESET}")
+    except ImportError as e:
+        print(f"{RED}依赖缺失：{e}{RESET}")
+    except Exception as e:
+        print(f"{RED}错误：{e}{RESET}")
+        if "xxx" not in str(e):
+            traceback.print_exc()
+
+
 MENU = f"""
 {h('═══════════════════════════════')}
 {h('  🎹 Danny音乐馆 AI Agent')}
@@ -315,6 +377,7 @@ MENU = f"""
   {label('2')}  生成曲目介绍（复制到 App.jsx）
   {label('3')}  乐理问答（多轮对话）
   {label('4')}  智能对话（自动判断意图）
+  {label('5')}  扒谱（音频文件 → 数字简谱）
   {label('q')}  退出
 
 """
@@ -324,13 +387,11 @@ def main():
     from config import QWEN_API_KEY
     if "xxx" in QWEN_API_KEY:
         print(f"{RED}⚠️  请先在 agent/config.py 里填写你的 API Key！{RESET}")
-        print(dim("   HF 免费 Token：https://huggingface.co/settings/tokens"))
-        print(dim("   阿里云 Qwen：  https://bailian.console.aliyun.com/"))
         sys.exit(1)
 
     while True:
         print(MENU)
-        choice = input(label("选择模式 [1/2/3/4/q]：")).strip()
+        choice = input(label("选择模式 [1/2/3/4/5/q]：")).strip()
         if choice == "1":
             mode_content()
         elif choice == "2":
@@ -339,11 +400,13 @@ def main():
             mode_qa()
         elif choice == "4":
             mode_chat()
+        elif choice == "5":
+            mode_transcribe()
         elif choice.lower() in ("q", "quit", "exit"):
             print(ok("\n再见！🎵\n"))
             break
         else:
-            print(dim("  输入 1/2/3/4 或 q"))
+            print(dim("  输入 1/2/3/4/5 或 q"))
 
 
 if __name__ == "__main__":
