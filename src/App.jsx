@@ -87,6 +87,14 @@ const SONGS = [
     techniques: ["前两句完全相同，弹熟一句等于会了一半", "第三句「5 6 5 4 3 1」是下行，注意不要越弹越快", "结尾 [5] 是低八度 Sol，找到左边第二组的 Sol 键"],
     tags: ["儿歌", "零基础", "启蒙"],
   },
+  {
+    id: 8, title: "英雄之证", category: "game", difficulty: "中等", isNew: true,
+    description: "怪物猎人主题曲，大气磅礴。",
+    keys: "2 [6] 2 3 - | 3 2 [6] 6 - 5 4 | 3 1 2 3 4 3 2| 3 1 [6]",
+    tips: "注意好视频里的节奏。",
+    techniques: ["[6] 是低八度的 La，找到左边第二组的 La 键", "重复2遍即可，先练熟第一句，第二句自然就会了", "结尾 [6] 是低八度 La，提前把手移好位置，不要慌乱"],
+    tags: ["改编", ""],
+  },
 ];
 
 const GUIDE_SECTIONS = [
@@ -365,13 +373,16 @@ function ScrollToTop() {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function Header({ page, setPage }) {
+function Header({ page, setPage, username, favCount, onAccountClick, onLogout }) {
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
   const NAV = [
     { id: "home",  label: "首页" },
     { id: "songs", label: "曲目大全" },
     { id: "guide", label: "入门指南" },
     { id: "about", label: "关于我" },
   ];
+
   return (
     <header style={{
       position: "sticky", top: 0, zIndex: 200,
@@ -391,24 +402,84 @@ function Header({ page, setPage }) {
           </div>
         </button>
 
-        {/* Nav */}
-        <nav style={{ display: "flex", gap: 4 }}>
-          {NAV.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setPage(item.id)}
-              style={{
+        {/* Nav + 用户区 */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <nav style={{ display: "flex", gap: 4 }}>
+            {NAV.map(item => (
+              <button key={item.id} onClick={() => setPage(item.id)} style={{
                 background: page === item.id ? COLOR.primary : "transparent",
                 color: page === item.id ? "#fff" : "#374151",
                 border: "none", borderRadius: 8, padding: "8px 14px",
-                cursor: "pointer", fontWeight: 600, fontSize: 14,
-                transition: "all 0.15s",
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+                cursor: "pointer", fontWeight: 600, fontSize: 14, transition: "all 0.15s",
+              }}>{item.label}</button>
+            ))}
+          </nav>
+
+          {/* 用户区 */}
+          {username ? (
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowUserMenu(v => !v)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  background: `${COLOR.primary}12`, border: `1.5px solid ${COLOR.primary}30`,
+                  borderRadius: 99, padding: "6px 14px 6px 8px",
+                  cursor: "pointer", transition: "all 0.15s",
+                }}
+              >
+                <span style={{
+                  width: 26, height: 26, borderRadius: "50%",
+                  background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
+                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 12, fontWeight: 800,
+                }}>{username[0].toUpperCase()}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.primary }}>{username}</span>
+                {favCount > 0 && (
+                  <span style={{
+                    background: "#ef4444", color: "#fff",
+                    borderRadius: 99, fontSize: 10, fontWeight: 800,
+                    padding: "1px 6px", lineHeight: 1.6,
+                  }}>❤️ {favCount}</span>
+                )}
+              </button>
+
+              {/* 下拉菜单 */}
+              {showUserMenu && (
+                <div style={{
+                  position: "absolute", right: 0, top: "calc(100% + 8px)",
+                  background: "#fff", border: `1px solid ${COLOR.border}`,
+                  borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  minWidth: 160, zIndex: 300, overflow: "hidden",
+                }}>
+                  <div style={{ padding: "12px 16px", borderBottom: `1px solid ${COLOR.border}` }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.text }}>{username}</div>
+                    <div style={{ fontSize: 12, color: COLOR.muted, marginTop: 2 }}>已收藏 {favCount} 首</div>
+                  </div>
+                  <button onClick={() => { setPage("songs"); setShowUserMenu(false); }} style={{
+                    width: "100%", padding: "10px 16px", border: "none", background: "none",
+                    textAlign: "left", cursor: "pointer", fontSize: 13, color: COLOR.text,
+                    display: "flex", alignItems: "center", gap: 8,
+                  }}>❤️ 我的收藏</button>
+                  <button onClick={() => { onLogout(); setShowUserMenu(false); }} style={{
+                    width: "100%", padding: "10px 16px", border: "none", background: "none",
+                    textAlign: "left", cursor: "pointer", fontSize: 13, color: "#ef4444",
+                    display: "flex", alignItems: "center", gap: 8,
+                    borderTop: `1px solid ${COLOR.border}`,
+                  }}>🚪 退出登录</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={onAccountClick} style={{
+              background: `linear-gradient(135deg, ${COLOR.primary}, ${COLOR.secondary})`,
+              color: "#fff", border: "none", borderRadius: 99,
+              padding: "8px 18px", cursor: "pointer",
+              fontWeight: 700, fontSize: 13,
+              boxShadow: `0 2px 8px ${COLOR.primary}40`,
+              transition: "all 0.15s",
+            }}>登录 / 注册</button>
+          )}
+        </div>
       </div>
     </header>
   );
