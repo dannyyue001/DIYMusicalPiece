@@ -9,3 +9,20 @@ directory = "./dist"
 binding = "danny_music_logindb"
 database_name = "danny-music-logindb"
 database_id = "288226f1-0ace-4267-a6f1-ba8e04aecc49"
+
+# ── Staging environment ───────────────────────────────────────────────────────
+# Deploy:  npm run deploy:staging
+# URL:     https://dannymusicgallery-staging.<your-subdomain>.workers.dev
+#
+# First-time setup (run once):
+#   npx wrangler d1 create danny-music-logindb-staging
+#   → copy the new database_id below, then:
+#   npx wrangler d1 execute danny-music-logindb-staging --env staging --file=schema.sql
+# ─────────────────────────────────────────────────────────────────────────────
+[env.staging]
+name = "dannymusicgallery-staging"
+
+[[env.staging.d1_databases]]
+binding = "danny_music_logindb"
+database_name = "danny-music-logindb-staging"
+database_id = "REPLACE_WITH_STAGING_DB_ID"
