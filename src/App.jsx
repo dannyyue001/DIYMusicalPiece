@@ -88,12 +88,20 @@ const SONGS = [
     tags: ["儿歌", "零基础", "启蒙"],
   },
   {
-    id: 8, title: "英雄之证", category: "game", difficulty: "中等", isNew: true,
+    id: 8, title: "英雄之证", category: "game", difficulty: "中等", isNew: false,
     description: "怪物猎人主题曲，大气磅礴。",
     keys: "2 [6] 2 3 - | 3 2 [6] 6 - 5 4 | 3- 1- 2 3 4 3 2| 3- 1- [6]",
     tips: "注意好视频里的节奏。",
     techniques: ["[6] 是低八度的 La，找到左边第二组的 La 键", "重复2遍即可，先练熟第一句，第二句自然就会了", "结尾 [6] 是低八度 La，提前把手移好位置，不要慌乱"],
     tags: ["改编", ""],
+  },
+  {
+    id: 9, title: "一笑江湖", category: "pop", difficulty: "中等", isNew: true,
+    description: "古风，旋律优美。",
+    keys: "3 5 3 7- 7  {1} 7- | 7 6 5- 2- 3- | 5 3 2- 1 5- 2- 3",
+    tips: "古风曲子节奏偏自由，注意带 '-' 的音要拖长，短音要干脆，不要每个音弹一样长。",
+    techniques: ["{1} 是高八度的 Do，位置在右边，提前找好别慌", "带 '-' 的音（如 7- 5-）拖长一拍，弹完别急着走", "整体节奏先慢练，找到长短感后再提速"],
+    tags: ["改编", "古风", "热门"],
   },
 ];
 
